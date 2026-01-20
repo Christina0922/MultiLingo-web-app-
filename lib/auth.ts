@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose';
+import type { JWTPayload } from 'jose';
 import { cookies } from 'next/headers';
 import { prisma } from './db';
 import bcrypt from 'bcryptjs';
@@ -7,10 +8,11 @@ const secret = new TextEncoder().encode(
   process.env.JWT_SECRET || 'your-secret-key-change-in-production'
 );
 
-export interface SessionPayload {
+export type SessionPayload = JWTPayload & {
   userId: string;
-  email: string;
-}
+  email?: string;
+  plan?: string;
+};
 
 export async function createSession(payload: SessionPayload) {
   const token = await new SignJWT(payload)

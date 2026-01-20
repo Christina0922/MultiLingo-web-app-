@@ -86,7 +86,12 @@ export default function ResultPage() {
       <header className="bg-white border-b sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">MultiLingo</h1>
+            <button
+              onClick={() => router.push('/')}
+              className="text-2xl font-bold text-gray-900 hover:text-gray-700 cursor-pointer"
+            >
+              MultiLingo
+            </button>
             <div className="flex items-center gap-4">
               {user && <CreditDisplay />}
               <button

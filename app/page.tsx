@@ -2,13 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import AuthModal from '@/components/AuthModal';
 import CreditDisplay from '@/components/CreditDisplay';
 import LanguageSelector from '@/components/LanguageSelector';
+import AccountManager from '@/components/AccountManager';
 import { calculateCredits } from '@/lib/credits';
 
 export default function Home() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [user, setUser] = useState<any>(null);
   const [showAuth, setShowAuth] = useState(false);
   const [text, setText] = useState('');
@@ -19,9 +22,19 @@ export default function Home() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    checkAuth();
-    loadLanguages();
-  }, []);
+    if (status === 'authenticated' && session?.user) {
+      // NextAuth 세션에서 사용자 정보 가져오기
+      setUser({
+        id: (session.user as any).id,
+        email: session.user.email,
+        plan: (session.user as any).plan || 'FREE',
+      });
+      loadLanguages();
+    } else if (status === 'unauthenticated') {
+      checkAuth();
+      loadLanguages();
+    }
+  }, [status, session]);
 
   const checkAuth = async () => {
     try {
@@ -54,6 +67,12 @@ export default function Home() {
     } catch (error) {
       console.error('Failed to load languages:', error);
     }
+  };
+
+  const handleReset = () => {
+    setText('');
+    setSelectedLangs([]);
+    setError('');
   };
 
   const handleTranslate = async () => {
@@ -145,21 +164,39 @@ export default function Home() {
       <header className="bg-white border-b sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">MultiLingo</h1>
+            <button
+              onClick={() => {
+                handleReset();
+                router.push('/');
+              }}
+              className="text-2xl font-bold text-gray-900 hover:text-gray-700 cursor-pointer"
+            >
+              MultiLingo
+            </button>
             <div className="flex items-center gap-4">
               {user ? (
                 <>
                   <CreditDisplay />
-                  <button
-                    onClick={async () => {
-                      await fetch('/api/auth/logout', { method: 'POST' });
-                      setUser(null);
-                      router.refresh();
-                    }}
-                    className="text-sm text-gray-600 hover:text-gray-900"
-                  >
-                    로그아웃
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <AccountManager />
+                    <button
+                      onClick={async () => {
+                        if (session) {
+                          // NextAuth 로그아웃
+                          const { signOut } = await import('next-auth/react');
+                          await signOut({ redirect: false });
+                        } else {
+                          // 기존 JWT 로그아웃
+                          await fetch('/api/auth/logout', { method: 'POST' });
+                        }
+                        setUser(null);
+                        router.refresh();
+                      }}
+                      className="text-sm text-gray-600 hover:text-gray-900"
+                    >
+                      로그아웃
+                    </button>
+                  </div>
                 </>
               ) : (
                 <button

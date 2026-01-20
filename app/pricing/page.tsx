@@ -15,6 +15,7 @@ export default function PricingPage() {
   useEffect(() => {
     checkAuth();
     checkPaymentResult();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkAuth = async () => {
@@ -84,7 +85,12 @@ export default function PricingPage() {
       <header className="bg-white border-b">
         <div className="max-w-6xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">MultiLingo</h1>
+            <button
+              onClick={() => router.push('/')}
+              className="text-2xl font-bold text-gray-900 hover:text-gray-700 cursor-pointer"
+            >
+              MultiLingo
+            </button>
             <div className="flex items-center gap-4">
               {user && <CreditDisplay />}
               <button
